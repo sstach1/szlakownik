@@ -1,0 +1,83 @@
+{
+  "products": [
+    {
+      "id": "p1",
+      "title": "Karkonosze",
+      "region": "Karkonosze",
+      "price": 39,
+      "pages": 148,
+      "format": "PDF + EPUB",
+      "trail": "red",
+      "desc": "24 trasy po polskiej i słowackiej stronie, wyjścia o świcie i szlaki, które omijają kolejki na Giewont. Z godzinami przejść i alternatywami na złą pogodę.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p2",
+      "title": "Słowacja kamperem w 7 dni",
+      "region": "Słowacja",
+      "price": 34,
+      "pages": 112,
+      "format": "PDF",
+      "trail": "red",
+      "desc": "Połoniny latem, rykowisko jesienią, skitury zimą. Gdzie spać, gdzie zjeść pierogi i jak dojechać bez samochodu.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p4",
+      "title": "Region Rax - Via ferraty",
+      "region": "Austria",
+      "price": 49,
+      "pages": 196,
+      "format": "PDF + EPUB",
+      "trail": "red",
+      "desc": "Swanetia, Kazbegi i Tuszetia krok po kroku. Marszrutki, guesthouse'y, przełęcze powyżej 3000 m i co spakować.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p3",
+      "title": "Słowacki Raj",
+      "region": "Słowacja",
+      "price": 29,
+      "pages": 86,
+      "format": "EPUB",
+      "trail": "red",
+      "desc": "Plan na trzy dni: dzielnice, punkty widokowe, tramwaj 28 bez stania w kolejce i jednodniowy wypad do Sintry.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p5",
+      "title": "Krutynia kajakiem",
+      "region": "Mazury",
+      "price": 27,
+      "pages": 64,
+      "format": "PDF",
+      "trail": "green",
+      "desc": "Cały szlak kajakowy w 7 etapach: stanice, pola biwakowe, przenoski i sklepy po drodze.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p6",
+      "title": "Islandia: Ring Road",
+      "region": "Islandia",
+      "price": 45,
+      "pages": 164,
+      "format": "PDF",
+      "trail": "blue",
+      "desc": "Droga nr 1 w 10 dni z budżetem w koronach, stacjami benzynowymi co 100 km i miejscami na kamper.",
+      "url": "",
+      "cover": "",
+      "sample": true
+    }
+  ],
+  "signs": [
+    "Karkonosze",
+    "Słowacja",
+    "Austria",
+    "Islandia"
+  ]
+}

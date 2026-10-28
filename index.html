@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Szlakownik – e-booki turystyczne</title>
+<meta name="description" content="Przewodniki turystyczne w formie e-booków: trasy, noclegi i mapy. PDF i EPUB do czytania offline na szlaku.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: drogowskaz w hero, potem siatka okładek jak półka z przewodnikami; panel admina jako osobny widok #admin */
+:root{
+  --paper:#eef1ee; --surface:#ffffff; --ink:#15232f; --muted:#56656f; --line:#cfd7d3;
+  --lake:#0d6a68; --lake-ink:#ffffff; --sign:#f2c230; --sign-ink:#1a1a1a;
+  --t-red:#c8322b; --t-blue:#1f5fb8; --t-green:#24804a; --t-yellow:#e9b81f; --t-black:#1b1b1b;
+  --danger:#b3261e;
+  --f-display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f171d; --surface:#17222a; --ink:#e6ecea; --muted:#9aaab0; --line:#2a3943;
+  --lake:#3fb3ae; --lake-ink:#06201f; --sign:#f2c230; --sign-ink:#1a1a1a; --danger:#ff8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f171d; --surface:#17222a; --ink:#e6ecea; --muted:#9aaab0; --line:#2a3943;
+  --lake:#3fb3ae; --lake-ink:#06201f; --sign:#f2c230; --sign-ink:#1a1a1a; --danger:#ff8a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+a{color:var(--lake)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--lake);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+
+/* header */
+.top{border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:900;font-size:28px;letter-spacing:.02em;text-transform:uppercase;text-decoration:none;color:var(--ink)}
+.marker{display:inline-grid;grid-template-rows:1fr 1fr 1fr;width:26px;height:22px;border:1px solid var(--line);background:#fff;flex:none}
+.marker i:nth-child(1),.marker i:nth-child(3){background:#fff}
+.marker i:nth-child(2){background:var(--mk,var(--t-red))}
+.nav{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:6px;cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--lake);color:var(--lake-ink);border-color:var(--lake)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--danger);border-color:currentColor;background:transparent}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding-block:56px 40px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-family:var(--f-display);font-weight:900;font-size:clamp(48px,8vw,92px);line-height:.92;text-transform:uppercase;margin-top:12px}
+.hero h1 em{font-style:normal;color:var(--lake)}
+.hero p{max-width:52ch;color:var(--muted);font-size:18px;margin:18px 0 0}
+.hero .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.post{position:relative;display:flex;flex-direction:column;gap:10px;padding-left:28px}
+.post::before{content:"";position:absolute;left:8px;top:-20px;bottom:-40px;width:12px;background:linear-gradient(var(--muted),var(--muted));opacity:.45;border-radius:2px}
+.arrow{position:relative;background:var(--sign);color:var(--sign-ink);display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px 40px 10px 16px;clip-path:polygon(0 0,calc(100% - 26px) 0,100% 50%,calc(100% - 26px) 100%,0 100%);text-decoration:none;transition:transform .2s ease}
+.arrow:hover{transform:translateX(6px)}
+.arrow b{font-family:var(--f-display);font-weight:800;font-size:22px;text-transform:uppercase;line-height:1.1;display:flex;align-items:center;gap:10px;min-width:0}
+.arrow span{font-family:var(--f-mono);font-size:13px;font-weight:600;white-space:nowrap}
+.arrow.top-sign{background:#fff;color:#1a1a1a;border:2px solid #1a1a1a;clip-path:none;padding:10px 16px;grid-template-columns:1fr}
+.arrow.top-sign b{font-size:18px}
+.post .marker{border-color:#bbb}
+
+/* toolbar */
+.shelf .wrap{padding-block:16px 64px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between;border-top:2px solid var(--ink);padding-top:16px;margin-bottom:24px}
+.bar h2{font-family:var(--f-display);font-weight:800;font-size:36px;text-transform:uppercase}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px;font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.chip .marker{width:18px;height:15px}
+.search{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;min-width:0;width:220px;max-width:100%}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:28px 24px}
+.book{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cover{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:4px 10px 10px 4px;overflow:hidden;background:var(--cv,#1f5fb8);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.06),0 10px 24px -14px rgba(10,30,40,.55);display:flex;flex-direction:column;justify-content:space-between;padding:18px 18px 16px 24px}
+.cover::before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 78% 30%,transparent 0 14px,rgba(255,255,255,.13) 14px 15px);pointer-events:none}
+.cover::after{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.22)}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cover.has-img::before{background:linear-gradient(180deg,rgba(0,0,0,.05) 30%,rgba(0,0,0,.65))}
+.cover > *{position:relative;z-index:1}
+.cover .marker{border-color:rgba(255,255,255,.6)}
+.cover .reg{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.cover h3{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,3.2vw,36px);line-height:.95;text-transform:uppercase;overflow-wrap:anywhere}
+.cover .head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.book p{margin:0;color:var(--muted);font-size:15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.buy{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+.price{font-family:var(--f-display);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums}
+.price small{font-size:16px;font-weight:600;color:var(--muted)}
+.soon{font-size:13px;color:var(--muted)}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:40px 20px;text-align:center;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer .wrap{padding-block:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+/* admin */
+.admin .wrap{padding-block:32px 64px;display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:32px;align-items:start}
+.admin h1{font-family:var(--f-display);font-weight:900;font-size:44px;text-transform:uppercase;grid-column:1/-1;line-height:1}
+.admin .lead{grid-column:1/-1;margin:-20px 0 0;color:var(--muted);max-width:70ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.panel h2{font-size:18px;font-weight:700;margin-bottom:14px}
+.form{display:grid;gap:14px}
+.field{display:grid;gap:6px;min-width:0}
+.field label,.legend{font-size:13px;font-weight:600}
+.field .hint{font-size:12px;color:var(--muted)}
+.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:9px 11px;width:100%;min-width:0}
+.field textarea{min-height:90px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:6px 9px;cursor:pointer;font-size:13px}
+.swatches input{position:absolute;opacity:0;pointer-events:none}
+.swatches input:checked + label{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.swatches input:focus-visible + label{outline:3px solid var(--lake);outline-offset:2px}
+.status{font-size:14px;min-height:1.4em}
+.status.err{color:var(--danger)}
+.list{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--paper)}
+.thumb{width:54px;aspect-ratio:3/4;border-radius:2px 5px 5px 2px;background:var(--cv);position:relative;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item b{display:block;overflow-wrap:anywhere}
+.item .meta{margin-top:2px}
+.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;border:1px solid var(--line);padding:1px 6px;border-radius:4px;margin-left:6px;color:var(--muted)}
+.formbtns{display:flex;gap:8px;flex-wrap:wrap}
+.listhint{margin:-6px 0 14px;font-size:14px;color:var(--muted)}
+.divider{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
+.item .actions .btn{padding:7px 12px}
+.arrow{border:0;font:inherit;cursor:pointer;width:100%;text-align:left}
+.arrow.is-active{outline:3px solid var(--ink);outline-offset:2px}
+.chip.region{background:var(--sign);color:var(--sign-ink);border-color:var(--sign)}
+.signadd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:14px}
+.signadd input{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:9px 11px;min-width:0}
+.signitem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper)}
+.signitem b{font-family:var(--f-display);font-weight:800;font-size:20px;text-transform:uppercase;overflow-wrap:anywhere}
+.signitem small{display:block;font-family:var(--f-mono);font-size:12px;font-weight:400;text-transform:none;color:var(--muted)}
+.signitem small.warn{color:var(--danger)}
+.stack{display:grid;gap:24px;min-width:0}
+.login .wrap{padding-block:56px 80px;display:grid;place-items:center}
+.logincard{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px 24px;display:grid;gap:16px}
+.logincard .post-top{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.logincard h1{font-family:var(--f-display);font-weight:900;font-size:40px;line-height:1;text-transform:uppercase}
+.logincard p{margin:0;color:var(--muted)}
+.pwrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.pwrow .btn{padding-inline:12px}
+.adminbar{grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.adminbar h1{grid-column:auto}
+.notice{grid-column:1/-1;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:16px 20px}
+
+@media (max-width:820px){
+  .hero .wrap{grid-template-columns:1fr;padding-block:36px 28px;gap:32px}
+  .admin .wrap{grid-template-columns:1fr}
+}
+@media (max-width:460px){
+  .row2{grid-template-columns:1fr}
+  .item{grid-template-columns:44px minmax(0,1fr)}
+  .item .actions{grid-column:1/-1;justify-content:flex-start}
+  .search{width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.steps{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;color:var(--muted)}
+.steps b{color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.check input{width:auto}
+.footlink{color:var(--muted);font-size:13px}
+.loaderr{border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:12px 16px;margin-bottom:20px}
+details.help summary{cursor:pointer;font-weight:600;font-size:14px}
+details.help[open] summary{margin-bottom:10px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><span class="marker" style="--mk:var(--t-red)"><i></i><i></i><i></i></span>Szlakownik</a>
+    <nav class="nav">
+      <a class="btn" href="#katalog">Katalog</a>
+      <a class="btn" id="adminLink" href="#admin" hidden>Panel admina</a>
+    </nav>
+  </div>
+</header>
+
+<main id="shop">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="eyebrow">E-booki podróżnicze · PDF i EPUB</div>
+        <h1>Przewodniki, które <em>mieszczą się</em> w telefonie</h1>
+        <p>Sprawdzone trasy, noclegi i mapy od ludzi, którzy przeszli to na własnych nogach. Kupujesz raz, czytasz offline na szlaku.</p>
+        <div class="cta"><a class="btn primary" href="#katalog">Zobacz e-booki</a></div>
+      </div>
+      <div class="post" id="signpost" aria-label="Regiony">
+        <div class="arrow top-sign"><b>Szlakownik · 0 m n.p.m.</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shelf" id="katalog">
+    <div class="wrap">
+      <div class="loaderr" id="loadErr" hidden>Nie udało się wczytać aktualnej listy e-booków. Odśwież stronę za chwilę.</div>
+      <div class="bar">
+        <h2>Katalog</h2>
+        <div class="filters" id="filters"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+</main>
+
+<main id="login" class="login" hidden>
+  <div class="wrap">
+    <div class="logincard">
+      <div class="post-top"><span class="marker" style="--mk:var(--t-red)" aria-hidden="true"><i></i><i></i><i></i></span>Szlakownik · strefa właściciela</div>
+      <h1>Logowanie</h1>
+      <p>Zaloguj się tokenem z GitHuba. Zmiany zapisują się w Twoim repozytorium, a sklep aktualizuje się po około minucie.</p>
+      <form class="form" id="loginForm" novalidate>
+        <div class="row2">
+          <div class="field"><label for="l-owner">Konto GitHub</label><input id="l-owner" autocomplete="username" required placeholder="sstach1"></div>
+          <div class="field"><label for="l-repo">Repozytorium</label><input id="l-repo" required placeholder="szlakownik"></div>
+        </div>
+        <div class="field"><label for="l-token">Token dostępu</label>
+          <div class="pwrow"><input id="l-token" type="password" autocomplete="current-password" required placeholder="github_pat_…"><button class="btn" type="button" data-toggle="l-token">Pokaż</button></div></div>
+        <label class="check" for="l-remember"><input type="checkbox" id="l-remember"> Zapamiętaj na tym komputerze</label>
+        <button class="btn primary" type="submit" id="loginBtn">Zaloguj się</button>
+      </form>
+      <div class="status" id="loginStatus" role="status"></div>
+      <details class="help">
+        <summary>Skąd wziąć token?</summary>
+        <ol class="steps">
+          <li>Otwórz <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+          <li>Nazwa: <b>Szlakownik panel</b>. Ważność: np. <b>90 dni</b>.</li>
+          <li>Repository access: <b>Only select repositories</b> → wybierz repozytorium sklepu.</li>
+          <li>Permissions → Repository permissions → <b>Contents: Read and write</b>.</li>
+          <li>Kliknij <b>Generate token</b>, skopiuj go i wklej powyżej.</li>
+        </ol>
+      </details>
+      <a href="#" style="font-size:14px">← Wróć do sklepu</a>
+    </div>
+  </div>
+</main>
+
+<main id="admin" class="admin" hidden>
+  <div class="wrap">
+    <div class="adminbar"><h1>Panel administracyjny</h1><button class="btn" type="button" id="logoutBtn">Wyloguj się</button></div>
+    <p class="lead">Dodawaj, edytuj i usuwaj e-booki oraz ustawiaj strzałki na drogowskazie. Każda zmiana zapisuje się w repozytorium <b id="repoName"></b>. Klienci zobaczą ją po około minucie.</p>
+    <section class="panel" id="addPanel">
+      <h2 id="formTitle">Dodaj e-booka</h2>
+      <form class="form" id="addForm" novalidate>
+        <div class="field"><label for="f-title">Tytuł</label><input id="f-title" required maxlength="80" placeholder="np. Tatry bez tłumów"></div>
+        <div class="row2">
+          <div class="field"><label for="f-region">Kierunek / region</label><input id="f-region" required maxlength="40" placeholder="np. Tatry" list="regionList"></div>
+          <div class="field"><label for="f-price">Cena (zł)</label><input id="f-price" type="number" min="0" step="0.01" required placeholder="39"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-pages">Liczba stron</label><input id="f-pages" type="number" min="1" step="1" placeholder="120"></div>
+          <div class="field"><label for="f-format">Format</label><select id="f-format"><option>PDF</option><option>EPUB</option><option>PDF + EPUB</option></select></div>
+        </div>
+        <div class="field"><label for="f-desc">Opis</label><textarea id="f-desc" maxlength="600" placeholder="Co znajdzie czytelnik w środku?"></textarea></div>
+        <div class="field">
+          <span class="legend">Kolor szlaku (kategoria i okładka)</span>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="field"><label for="f-url">Link do płatności</label><input id="f-url" type="url" placeholder="https://buy.stripe.com/…"><span class="hint">Link z Stripe, Przelewy24, Gumroad lub innej bramki. Bez linku e-book pokaże „Wkrótce w sprzedaży”.</span></div>
+        <div class="field"><label for="f-cover">Okładka (opcjonalnie)</label><input id="f-cover" type="file" accept="image/jpeg,image/png,image/webp"><span class="hint" id="coverHint">JPG, PNG lub WebP do 3 MB. Bez zdjęcia okładka powstanie automatycznie w kolorze szlaku.</span></div>
+        <div class="formbtns"><button class="btn primary" id="addBtn" type="submit">Dodaj do sklepu</button><button class="btn" id="cancelEdit" type="button" hidden>Anuluj edycję</button></div>
+        <div class="status" id="addStatus" role="status"></div>
+      </form>
+    </section>
+    <div class="stack">
+      <section class="panel">
+        <h2>Drogowskaz na stronie głównej</h2>
+        <p class="listhint">Każda strzałka to region. Kliknięcie strzałki pokazuje w katalogu tylko e-booki z tego regionu. Nazwa musi być taka sama jak w polu „Kierunek / region” e-booka.</p>
+        <div class="list" id="signList"></div>
+        <form class="signadd" id="signForm" novalidate>
+          <input id="s-region" list="regionList" maxlength="40" placeholder="np. Karkonosze" aria-label="Region nowej strzałki">
+          <button class="btn primary" type="submit">Dodaj strzałkę</button>
+        </form>
+        <datalist id="regionList"></datalist>
+        <div class="status" id="signStatus" role="status"></div>
+      </section>
+      <section class="panel">
+        <h2 id="listTitle">E-booki w sklepie</h2>
+        <p class="listhint">Kolejność na tej liście to kolejność w katalogu. Zmieniasz ją strzałkami ↑ ↓.</p>
+        <div class="list" id="list"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© Szlakownik · e-booki turystyczne</span>
+    <span>Plik wysyłamy na e-mail podany przy płatności. · <a class="footlink" href="#admin">Panel właściciela</a></span>
+  </div>
+</footer>
+
+<script type="application/json" id="seed">{
+  "products": [
+    {
+      "id": "p1",
+      "title": "Karkonosze",
+      "region": "Karkonosze",
+      "price": 39,
+      "pages": 148,
+      "format": "PDF + EPUB",
+      "trail": "red",
+      "desc": "24 trasy po polskiej i słowackiej stronie, wyjścia o świcie i szlaki, które omijają kolejki na Giewont. Z godzinami przejść i alternatywami na złą pogodę.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p2",
+      "title": "Słowacja kamperem w 7 dni",
+      "region": "Słowacja",
+      "price": 34,
+      "pages": 112,
+      "format": "PDF",
+      "trail": "red",
+      "desc": "Połoniny latem, rykowisko jesienią, skitury zimą. Gdzie spać, gdzie zjeść pierogi i jak dojechać bez samochodu.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p4",
+      "title": "Region Rax - Via ferraty",
+      "region": "Austria",
+      "price": 49,
+      "pages": 196,
+      "format": "PDF + EPUB",
+      "trail": "red",
+      "desc": "Swanetia, Kazbegi i Tuszetia krok po kroku. Marszrutki, guesthouse'y, przełęcze powyżej 3000 m i co spakować.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p3",
+      "title": "Słowacki Raj",
+      "region": "Słowacja",
+      "price": 29,
+      "pages": 86,
+      "format": "EPUB",
+      "trail": "red",
+      "desc": "Plan na trzy dni: dzielnice, punkty widokowe, tramwaj 28 bez stania w kolejce i jednodniowy wypad do Sintry.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p5",
+      "title": "Krutynia kajakiem",
+      "region": "Mazury",
+      "price": 27,
+      "pages": 64,
+      "format": "PDF",
+      "trail": "green",
+      "desc": "Cały szlak kajakowy w 7 etapach: stanice, pola biwakowe, przenoski i sklepy po drodze.",
+      "url": "",
+      "cover": ""
+    },
+    {
+      "id": "p6",
+      "title": "Islandia: Ring Road",
+      "region": "Islandia",
+      "price": 45,
+      "pages": 164,
+      "format": "PDF",
+      "trail": "blue",
+      "desc": "Droga nr 1 w 10 dni z budżetem w koronach, stacjami benzynowymi co 100 km i miejscami na kamper.",
+      "url": "",
+      "cover": "",
+      "sample": true
+    }
+  ],
+  "signs": [
+    "Karkonosze",
+    "Słowacja",
+    "Austria",
+    "Islandia"
+  ]
+}</script>
+<script>
+(function(){
+  "use strict";
+  var TRAILS = {
+    red:{label:"Góry i klasyki",color:"var(--t-red)"},
+    blue:{label:"Miasta i wybrzeża",color:"var(--t-blue)"},
+    green:{label:"Natura i parki",color:"var(--t-green)"},
+    yellow:{label:"Woda i kajaki",color:"var(--t-yellow)"},
+    black:{label:"Wyprawy",color:"var(--t-black)"}
+  };
+  var KEY = "szlakownik-github";
+  var state = {products:[], signs:[]};
+  var filter = "all", query = "", regionFilter = "";
+  var gh = null, dataSha = null, busy = false, pendingDelete = null, editingId = null;
+  var localCovers = {};
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function norm(s){ return String(s||"").trim().toLowerCase(); }
+  function safeUrl(u){ return /^https:\/\//i.test(u || "") ? u : ""; }
+  function coverSrc(p){ var c = p.cover || ""; if (localCovers[c]) return localCovers[c]; return /^(https:\/\/|covers\/[\w.-]+$)/i.test(c) ? c : ""; }
+  function price(p){ var n = Number(p.price)||0; return n.toFixed(n % 1 ? 2 : 0).replace(".", ","); }
+  function readTime(pages){ var m = Math.round((Number(pages)||0)*1.5); if(!m) return ""; var h = Math.floor(m/60), r = m%60; return ((h? h+" h ":"") + (r? r+" min":"")).trim(); }
+  function marker(t){ var c = (TRAILS[t]||TRAILS.red).color; return '<span class="marker" style="--mk:'+c+'" aria-hidden="true"><i></i><i></i><i></i></span>'; }
+  function coverColor(t){ return t === "yellow" ? "#8a6a00" : (TRAILS[t]||TRAILS.red).color; }
+  function countIn(r){ return state.products.filter(function(p){ return norm(p.region) === norm(r); }).length; }
+  function ebooki(n){ return n === 1 ? "1 e-book" : (n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? n+" e-booki" : n+" e-booków"); }
+  function store(){ try { return gh && gh.remember ? localStorage : sessionStorage; } catch(e){ return null; } }
+
+  // ---------- UTF-8 base64 ----------
+  function b64enc(str){ var bytes = new TextEncoder().encode(str), s = ""; for (var i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+  function b64dec(b){ var s = atob(String(b).replace(/\s/g, "")), a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return new TextDecoder().decode(a); }
+
+  // ---------- rendering ----------
+  function renderSignpost(){
+    var sp = $("signpost"), top = sp.querySelector(".top-sign").outerHTML;
+    sp.innerHTML = top + state.signs.map(function(r){
+      var first = state.products.find(function(p){ return norm(p.region) === norm(r); });
+      var active = !!regionFilter && norm(regionFilter) === norm(r);
+      return '<button type="button" class="arrow'+(active?' is-active':'')+'" data-region="'+esc(r)+'" aria-pressed="'+active+'"><b>'+marker(first ? first.trail : "red")+'<span style="font:inherit;white-space:normal;overflow-wrap:anywhere">'+esc(r)+'</span></b><span>'+esc(ebooki(countIn(r)))+'</span></button>';
+    }).join("");
+  }
+
+  function renderFilters(){
+    var used = {}; state.products.forEach(function(p){ used[p.trail] = true; });
+    var html = (regionFilter ? '<button class="chip region" data-clear-region aria-label="Pokaż wszystkie regiony">Region: '+esc(regionFilter)+' ✕</button>' : '') +
+      '<button class="chip" data-f="all" aria-pressed="'+(filter==="all" && !regionFilter)+'">Wszystkie</button>';
+    Object.keys(TRAILS).forEach(function(k){ if(used[k]) html += '<button class="chip" data-f="'+k+'" aria-pressed="'+(filter===k)+'">'+marker(k)+esc(TRAILS[k].label)+'</button>'; });
+    html += '<input class="search" id="q" type="search" placeholder="Szukaj kierunku…" aria-label="Szukaj" value="'+esc(query)+'">';
+    $("filters").innerHTML = html;
+    $("q").addEventListener("input", function(e){ query = e.target.value; renderGrid(); });
+  }
+
+  function coverHtml(p, small){
+    var img = coverSrc(p);
+    if (small) return '<div class="thumb" style="--cv:'+coverColor(p.trail)+'">'+(img?'<img alt="" src="'+esc(img)+'">':'')+'</div>';
+    return '<div class="cover'+(img?' has-img':'')+'" style="--cv:'+coverColor(p.trail)+'">'+(img?'<img alt="" src="'+esc(img)+'">':'')+
+      '<div class="head"><span class="reg">'+esc(p.region)+'</span>'+marker(p.trail)+'</div><h3>'+esc(p.title)+'</h3></div>';
+  }
+
+  function renderGrid(){
+    var q = query.trim().toLowerCase();
+    var items = state.products.filter(function(p){
+      if (filter !== "all" && p.trail !== filter) return false;
+      if (regionFilter && norm(p.region) !== norm(regionFilter)) return false;
+      if (q && (p.title+" "+p.region+" "+p.desc).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    if (!state.products.length){ $("grid").innerHTML = '<div class="empty" style="grid-column:1/-1">Sklep jest jeszcze pusty. Pierwsze e-booki pojawią się tu wkrótce.</div>'; return; }
+    if (!items.length){ $("grid").innerHTML = '<div class="empty" style="grid-column:1/-1">Brak e-booków dla tego wyszukiwania.</div>'; return; }
+    $("grid").innerHTML = items.map(function(p){
+      var url = safeUrl(p.url), rt = readTime(p.pages);
+      return '<article class="book">'+coverHtml(p)+
+        '<div class="meta">'+(p.pages?'<span>'+esc(p.pages)+' str.</span>':'')+'<span>'+esc(p.format)+'</span>'+(rt?'<span>lektura '+esc(rt)+'</span>':'')+'</div>'+
+        '<p>'+esc(p.desc)+'</p>'+
+        '<div class="buy"><span class="price">'+esc(price(p))+' <small>zł</small></span>'+
+        (url ? '<a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener">Kup e-booka</a>' : '<span class="soon">Wkrótce w sprzedaży</span>')+
+        '</div></article>';
+    }).join("");
+  }
+
+  function renderList(){
+    $("listTitle").textContent = "E-booki w sklepie (" + state.products.length + ")";
+    if (!state.products.length){ $("list").innerHTML = '<div class="empty">Brak e-booków. Dodaj pierwszego w formularzu obok.</div>'; return; }
+    var n = state.products.length, dis = busy ? " disabled" : "";
+    $("list").innerHTML = state.products.map(function(p, i){
+      var confirming = pendingDelete === p.id;
+      return '<div class="item">'+coverHtml(p,true)+'<div><b>'+esc(p.title)+(p.sample?'<span class="tag">przykład</span>':'')+'</b>'+
+        '<div class="meta"><span>'+esc(p.region)+'</span><span>'+esc(price(p))+' zł</span><span>'+(safeUrl(p.url)?'płatność podpięta':'brak linku płatności')+'</span></div></div>'+
+        '<div class="actions">'+(confirming
+          ? '<button class="btn danger" data-del="'+esc(p.id)+'"'+dis+'>Tak, usuń</button><button class="btn" data-cancel>Anuluj</button>'
+          : '<button class="btn" data-up="'+esc(p.id)+'" aria-label="Przesuń wyżej"'+(busy||i===0?' disabled':'')+'>↑</button>'+
+            '<button class="btn" data-down="'+esc(p.id)+'" aria-label="Przesuń niżej"'+(busy||i===n-1?' disabled':'')+'>↓</button>'+
+            '<button class="btn" data-edit="'+esc(p.id)+'"'+dis+'>Edytuj</button>'+
+            '<button class="btn danger" data-ask="'+esc(p.id)+'"'+dis+'>Usuń</button>')+
+        '</div></div>';
+    }).join("");
+  }
+
+  function renderSignAdmin(){
+    var n = state.signs.length, dis = busy ? " disabled" : "";
+    $("signList").innerHTML = n ? state.signs.map(function(r, i){
+      var c = countIn(r);
+      return '<div class="signitem"><b>'+esc(r)+'<small class="'+(c?'':'warn')+'">'+(c? esc(ebooki(c)) : 'Brak e-booków z tym regionem')+'</small></b><div class="actions">'+
+        '<button class="btn" data-sup="'+i+'" aria-label="Przesuń wyżej"'+(busy||i===0?' disabled':'')+'>↑</button>'+
+        '<button class="btn" data-sdown="'+i+'" aria-label="Przesuń niżej"'+(busy||i===n-1?' disabled':'')+'>↓</button>'+
+        '<button class="btn danger" data-sdel="'+i+'"'+dis+'>Usuń</button></div></div>';
+    }).join("") : '<div class="empty" style="padding:20px">Drogowskaz jest pusty. Dodaj pierwszą strzałkę poniżej.</div>';
+    var seen = {}, opts = [];
+    state.products.forEach(function(p){ var k = norm(p.region); if (k && !seen[k]) { seen[k] = 1; opts.push(p.region); } });
+    $("regionList").innerHTML = opts.map(function(r){ return '<option value="'+esc(r)+'">'; }).join("");
+  }
+
+  function renderSwatches(){
+    $("swatches").innerHTML = Object.keys(TRAILS).map(function(k,i){
+      return '<input type="radio" name="trail" id="t-'+k+'" value="'+k+'"'+(i===0?' checked':'')+'><label for="t-'+k+'">'+marker(k)+esc(TRAILS[k].label)+'</label>';
+    }).join("");
+  }
+
+  function renderAll(){ renderSignpost(); renderFilters(); renderGrid(); renderList(); renderSignAdmin(); }
+
+  function route(){
+    var isAdmin = location.hash === "#admin";
+    $("shop").hidden = isAdmin;
+    $("login").hidden = !(isAdmin && !gh);
+    $("admin").hidden = !(isAdmin && gh);
+    $("adminLink").hidden = !gh;
+    if (isAdmin) window.scrollTo(0,0);
+  }
+
+  // ---------- data ----------
+  function applyData(d){
+    state.products = Array.isArray(d && d.products) ? d.products : [];
+    state.signs = Array.isArray(d && d.signs) ? d.signs : [];
+  }
+  async function loadPublic(){
+    try {
+      var r = await fetch("products.json?t=" + Date.now(), {cache:"no-store"});
+      if (!r.ok) throw new Error(r.status);
+      applyData(await r.json());
+    } catch (e) {
+      try { applyData(JSON.parse($("seed").textContent)); } catch(_) {}
+      if (location.protocol !== "file:") $("loadErr").hidden = false;
+    }
+    renderAll();
+  }
+
+  // ---------- GitHub API ----------
+  async function api(path, opts){
+    opts = opts || {};
+    var headers = {"Accept":"application/vnd.github+json","Authorization":"Bearer " + gh.token,"X-GitHub-Api-Version":"2022-11-28"};
+    if (opts.body) headers["Content-Type"] = "application/json";
+    var r = await fetch("https://api.github.com/repos/" + encodeURIComponent(gh.owner) + "/" + encodeURIComponent(gh.repo) + path,
+      {method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache:"no-store"});
+    var j = null; try { j = await r.json(); } catch(e){}
+    if (!r.ok) { var err = new Error((j && j.message) || ("HTTP " + r.status)); err.status = r.status; throw err; }
+    return j;
+  }
+  function apiError(e){
+    if (!e || !e.status) return "Brak połączenia z GitHubem. Sprawdź internet i spróbuj ponownie.";
+    if (e.status === 401) return "Token jest nieprawidłowy albo wygasł. Wyloguj się i zaloguj nowym tokenem.";
+    if (e.status === 403) return "Token nie ma uprawnienia do zapisu. Ustaw w nim Contents: Read and write.";
+    if (e.status === 404) return "Nie znaleziono repozytorium albo token nie ma do niego dostępu.";
+    if (e.status === 409 || e.status === 422) return "Dane zmieniły się w międzyczasie (np. w innej karcie). Odśwież stronę i spróbuj ponownie.";
+    return "GitHub odrzucił zmianę (" + e.status + "): " + e.message;
+  }
+  async function loadFromRepo(){
+    try {
+      var f = await api("/contents/products.json?ref=" + encodeURIComponent(gh.branch));
+      dataSha = f.sha; applyData(JSON.parse(b64dec(f.content)));
+    } catch (e) {
+      if (e.status === 404) { dataSha = null; } else throw e;
+    }
+    renderAll();
+  }
+
+  function setStatus(msg, err){ var s = $("addStatus"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+  function signStatus(msg, err){ var s = $("signStatus"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+
+  async function save(msg){
+    busy = true; renderList(); renderSignAdmin();
+    try {
+      var body = {message: msg, branch: gh.branch, content: b64enc(JSON.stringify({products: state.products, signs: state.signs}, null, 2) + "\n")};
+      if (dataSha) body.sha = dataSha;
+      var r = await api("/contents/products.json", {method:"PUT", body: body});
+      dataSha = r.content.sha;
+      return {ok:true, text: msg + " Klienci zobaczą zmianę za około minutę."};
+    } catch (e) {
+      return {ok:false, text: apiError(e)};
+    } finally { busy = false; renderAll(); }
+  }
+
+  function readFile(file){
+    return new Promise(function(res, rej){ var fr = new FileReader(); fr.onload = function(){ res(fr.result); }; fr.onerror = rej; fr.readAsDataURL(file); });
+  }
+  async function uploadCover(file, id){
+    var ext = ({"image/jpeg":"jpg","image/png":"png","image/webp":"webp"})[file.type];
+    if (!ext) throw {status:0, own:"Okładka musi być w formacie JPG, PNG lub WebP."};
+    if (file.size > 3*1024*1024) throw {status:0, own:"Okładka jest większa niż 3 MB. Zmniejsz zdjęcie i spróbuj ponownie."};
+    var dataUrl = await readFile(file);
+    var path = "covers/" + id + "-" + Date.now().toString(36) + "." + ext;
+    await api("/contents/" + path, {method:"PUT", body:{message:"Okładka: " + id, branch: gh.branch, content: dataUrl.split(",")[1]}});
+    localCovers[path] = dataUrl;
+    return path;
+  }
+
+  // ---------- login ----------
+  function loginStatus(msg, err){ var s = $("loginStatus"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+  function guessRepo(){
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+    if (!m) return {owner:"", repo:""};
+    var seg = location.pathname.split("/").filter(Boolean)[0];
+    return {owner: m[1], repo: seg && !/\.html?$/i.test(seg) ? seg : m[1] + ".github.io"};
+  }
+  async function connect(cfg, quiet){
+    gh = cfg;
+    var info = await api("");
+    if (!info.permissions || !info.permissions.push) { var e = new Error("no push"); e.status = 403; throw e; }
+    gh.branch = info.default_branch || "main";
+    await loadFromRepo();
+    $("repoName").textContent = gh.owner + "/" + gh.repo;
+  }
+  $("loginForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var cfg = {owner: $("l-owner").value.trim(), repo: $("l-repo").value.trim(), token: $("l-token").value.trim(), remember: $("l-remember").checked};
+    if (!cfg.owner || !cfg.repo || !cfg.token) { loginStatus("Uzupełnij konto, repozytorium i token.", true); return; }
+    $("loginBtn").disabled = true; loginStatus("Łączę z GitHubem…");
+    try {
+      await connect(cfg);
+      try { var s = store(); if (s) s.setItem(KEY, JSON.stringify({owner:cfg.owner, repo:cfg.repo, token:cfg.token, remember:cfg.remember})); } catch(_){}
+      $("l-token").value = ""; loginStatus(""); route();
+    } catch (err) { gh = null; loginStatus(apiError(err), true); }
+    finally { $("loginBtn").disabled = false; }
+  });
+  $("logoutBtn").addEventListener("click", function(){
+    try { localStorage.removeItem(KEY); } catch(_){} try { sessionStorage.removeItem(KEY); } catch(_){}
+    gh = null; dataSha = null; location.hash = ""; route(); loadPublic();
+  });
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-toggle]"); if (!t) return;
+    var inp = $(t.getAttribute("data-toggle")), show = inp.type === "password";
+    inp.type = show ? "text" : "password"; t.textContent = show ? "Ukryj" : "Pokaż";
+  });
+
+  // ---------- product form ----------
+  function fillForm(p){
+    editingId = p ? p.id : null;
+    $("f-title").value = p ? p.title : ""; $("f-region").value = p ? p.region : "";
+    $("f-price").value = p ? p.price : ""; $("f-pages").value = p && p.pages ? p.pages : "";
+    $("f-format").value = p ? p.format : "PDF"; $("f-desc").value = p ? p.desc : "";
+    $("f-url").value = p ? (p.url || "") : ""; $("f-cover").value = "";
+    var r = $("t-" + (p ? p.trail : "red")); if (r) r.checked = true;
+    $("formTitle").textContent = p ? "Edytuj e-booka" : "Dodaj e-booka";
+    $("addBtn").textContent = p ? "Zapisz zmiany" : "Dodaj do sklepu";
+    $("cancelEdit").hidden = !p;
+    $("coverHint").textContent = p && p.cover ? "Zostaw puste, aby zachować obecną okładkę." : "JPG, PNG lub WebP do 3 MB. Bez zdjęcia okładka powstanie automatycznie w kolorze szlaku.";
+  }
+
+  $("addForm").addEventListener("submit", async function(e){
+    e.preventDefault(); if (busy) return;
+    var title = $("f-title").value.trim(), region = $("f-region").value.trim(), pr = $("f-price").value;
+    if (!title || !region || pr === "" || Number(pr) < 0) { setStatus("Uzupełnij tytuł, region i cenę.", true); return; }
+    var url = $("f-url").value.trim();
+    if (url && !safeUrl(url)) { setStatus("Link do płatności musi zaczynać się od https://", true); return; }
+    var trailEl = document.querySelector('input[name="trail"]:checked');
+    var old = editingId ? state.products.find(function(x){ return x.id === editingId; }) : null;
+    var p = { id: old ? old.id : "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6), title: title, region: region,
+      price: Math.round(Number(pr)*100)/100, pages: parseInt($("f-pages").value,10) || 0, format: $("f-format").value,
+      trail: trailEl ? trailEl.value : "red", desc: $("f-desc").value.trim(), url: url, cover: old ? (old.cover || "") : "" };
+    var file = $("f-cover").files && $("f-cover").files[0];
+    $("addBtn").disabled = true; busy = true;
+    try {
+      if (file) {
+        setStatus("Wysyłam okładkę…");
+        try { p.cover = await uploadCover(file, p.id); }
+        catch (err) { busy = false; setStatus(err.own || apiError(err), true); return; }
+      }
+      busy = false;
+      var before = state.products.slice();
+      if (old) state.products = state.products.map(function(x){ return x.id === old.id ? p : x; });
+      else state.products.unshift(p);
+      setStatus("Zapisuję…");
+      var res = await save((old ? "Zmieniono: " : "Dodano: ") + title);
+      if (!res.ok) state.products = before; else fillForm(null);
+      setStatus(res.text, !res.ok); renderAll();
+    } finally { busy = false; $("addBtn").disabled = false; }
+  });
+  $("cancelEdit").addEventListener("click", function(){ fillForm(null); setStatus(""); });
+
+  async function move(id, dir){
+    var i = state.products.findIndex(function(x){ return x.id === id; }), j = i + dir;
+    if (i < 0 || j < 0 || j >= state.products.length) return;
+    var before = state.products.slice();
+    var tmp = state.products[i]; state.products[i] = state.products[j]; state.products[j] = tmp;
+    var res = await save("Zmieniono kolejność e-booków");
+    if (!res.ok) { state.products = before; renderAll(); }
+    setStatus(res.text, !res.ok);
+  }
+
+  $("list").addEventListener("click", async function(e){
+    var t = e.target.closest("button"); if (!t || (busy && !t.hasAttribute("data-cancel"))) return;
+    if (t.hasAttribute("data-ask")) { pendingDelete = t.getAttribute("data-ask"); renderList(); return; }
+    if (t.hasAttribute("data-cancel")) { pendingDelete = null; renderList(); return; }
+    if (t.hasAttribute("data-up")) { move(t.getAttribute("data-up"), -1); return; }
+    if (t.hasAttribute("data-down")) { move(t.getAttribute("data-down"), 1); return; }
+    if (t.hasAttribute("data-edit")) {
+      var ed = state.products.find(function(x){ return x.id === t.getAttribute("data-edit"); });
+      if (ed) { fillForm(ed); setStatus(""); $("addPanel").scrollIntoView({block:"start"}); $("f-title").focus({preventScroll:true}); }
+      return;
+    }
+    if (t.hasAttribute("data-del")) {
+      var id = t.getAttribute("data-del"), before = state.products.slice();
+      var gone = state.products.find(function(x){ return x.id === id; });
+      state.products = state.products.filter(function(x){ return x.id !== id; });
+      pendingDelete = null;
+      var res = await save("Usunięto: " + (gone ? gone.title : id));
+      if (!res.ok) { state.products = before; renderAll(); }
+      setStatus(res.text, !res.ok);
+    }
+  });
+
+  // ---------- signpost admin ----------
+  $("signForm").addEventListener("submit", async function(e){
+    e.preventDefault(); if (busy) return;
+    var r = $("s-region").value.trim();
+    if (!r) { signStatus("Wpisz nazwę regionu.", true); return; }
+    if (state.signs.some(function(x){ return norm(x) === norm(r); })) { signStatus("Strzałka „" + r + "” już jest na drogowskazie.", true); return; }
+    var match = state.products.find(function(p){ return norm(p.region) === norm(r); });
+    if (match) r = match.region;
+    var before = state.signs.slice(); state.signs.push(r); $("s-region").value = "";
+    var res = await save("Dodano strzałkę: " + r);
+    if (!res.ok) { state.signs = before; renderAll(); }
+    signStatus(res.ok && !match ? res.text + " Nie ma jeszcze e-booków z tym regionem." : res.text, !res.ok);
+  });
+  $("signList").addEventListener("click", async function(e){
+    var t = e.target.closest("button"); if (!t || busy) return;
+    var before = state.signs.slice(), i, j, msg;
+    if (t.hasAttribute("data-sdel")) { i = +t.getAttribute("data-sdel"); msg = "Usunięto strzałkę: " + state.signs[i]; state.signs.splice(i,1); }
+    else {
+      i = t.hasAttribute("data-sup") ? +t.getAttribute("data-sup") : +t.getAttribute("data-sdown");
+      j = t.hasAttribute("data-sup") ? i - 1 : i + 1;
+      if (j < 0 || j >= state.signs.length) return;
+      var tmp = state.signs[i]; state.signs[i] = state.signs[j]; state.signs[j] = tmp; msg = "Zmieniono kolejność strzałek";
+    }
+    var res = await save(msg);
+    if (!res.ok) { state.signs = before; renderAll(); }
+    signStatus(res.text, !res.ok);
+  });
+
+  // ---------- shop interactions ----------
+  $("filters").addEventListener("click", function(e){
+    var c = e.target.closest(".chip"); if (!c) return;
+    if (c.hasAttribute("data-clear-region")) { regionFilter = ""; }
+    else { filter = c.getAttribute("data-f"); if (filter === "all") regionFilter = ""; }
+    renderSignpost(); renderFilters(); renderGrid();
+  });
+  $("signpost").addEventListener("click", function(e){
+    var a = e.target.closest("[data-region]"); if (!a) return;
+    var r = a.getAttribute("data-region");
+    regionFilter = norm(regionFilter) === norm(r) ? "" : r; filter = "all"; query = "";
+    renderSignpost(); renderFilters(); renderGrid();
+    if (regionFilter) $("katalog").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  });
+
+  // ---------- start ----------
+  window.addEventListener("hashchange", route);
+  renderSwatches();
+  var g = guessRepo(); $("l-owner").value = g.owner; $("l-repo").value = g.repo;
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || sessionStorage.getItem(KEY) || "null"); } catch(_){}
+  if (saved && saved.token) {
+    connect(saved).then(route).catch(function(err){
+      gh = null; try { localStorage.removeItem(KEY); sessionStorage.removeItem(KEY); } catch(_){}
+      loginStatus(apiError(err), true); route(); loadPublic();
+    });
+  } else {
+    loadPublic();
+  }
+  route();
+})();
+</script>
+</body>
+</html>
