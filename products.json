@@ -26,7 +26,7 @@
     },
     {
       "id": "p4",
-      "title": "Region Rax - Via ferraty",
+      "title": ".",
       "region": "Austria",
       "price": 49,
       "pages": 196,
@@ -34,7 +34,7 @@
       "trail": "red",
       "desc": "Swanetia, Kazbegi i Tuszetia krok po kroku. Marszrutki, guesthouse'y, przełęcze powyżej 3000 m i co spakować.",
       "url": "",
-      "cover": ""
+      "cover": "covers/p4-mvu1xybt.png"
     },
     {
       "id": "p3",
