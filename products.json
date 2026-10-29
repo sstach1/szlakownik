@@ -2,7 +2,7 @@
   "products": [
     {
       "id": "p1",
-      "title": "Karkonosze",
+      "title": ".",
       "region": "Karkonosze",
       "price": 39,
       "pages": 148,
@@ -10,7 +10,7 @@
       "trail": "red",
       "desc": "24 trasy po polskiej i słowackiej stronie, wyjścia o świcie i szlaki, które omijają kolejki na Giewont. Z godzinami przejść i alternatywami na złą pogodę.",
       "url": "",
-      "cover": ""
+      "cover": "covers/p1-mvu286b9.jpg"
     },
     {
       "id": "p2",
