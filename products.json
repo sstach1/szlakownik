@@ -38,7 +38,7 @@
     },
     {
       "id": "p3",
-      "title": "Słowacki Raj",
+      "title": ".",
       "region": "Słowacja",
       "price": 29,
       "pages": 86,
@@ -46,7 +46,7 @@
       "trail": "red",
       "desc": "Plan na trzy dni: dzielnice, punkty widokowe, tramwaj 28 bez stania w kolejce i jednodniowy wypad do Sintry.",
       "url": "",
-      "cover": ""
+      "cover": "covers/p3-mvu1v13q.png"
     },
     {
       "id": "p5",
