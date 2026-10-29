@@ -226,7 +226,7 @@ details.help[open] summary{margin-bottom:10px}
           <div class="field"><label for="l-repo">Repozytorium</label><input id="l-repo" required placeholder="szlakownik"></div>
         </div>
         <div class="field"><label for="l-token">Token dostępu</label>
-          <div class="pwrow"><input id="l-token" type="password" autocomplete="current-password" required placeholder="github_pat_…"><button class="btn" type="button" data-toggle="l-token">Pokaż</button></div></div>
+          <div class="pwrow"><input id="l-token" name="gh-token-field" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore required placeholder="github_pat_…"><button class="btn" type="button" data-toggle="l-token">Pokaż</button></div></div>
         <label class="check" for="l-remember"><input type="checkbox" id="l-remember"> Zapamiętaj na tym komputerze</label>
         <button class="btn primary" type="submit" id="loginBtn">Zaloguj się</button>
       </form>
@@ -544,7 +544,7 @@ details.help[open] summary{margin-bottom:10px}
   }
   function apiError(e){
     if (!e || !e.status) return "Brak połączenia z GitHubem. Sprawdź internet i spróbuj ponownie.";
-    if (e.status === 401) return "Token jest nieprawidłowy albo wygasł. Wyloguj się i zaloguj nowym tokenem.";
+    if (e.status === 401) return "GitHub nie rozpoznaje tego tokenu (np. stary token po „Regenerate” albo wpisany przez przeglądarkę automatycznie). Wyczyść pole, wklej świeżo skopiowany token i spróbuj ponownie.";
     if (e.status === 403) return "Token nie ma uprawnienia do zapisu. Ustaw w nim Contents: Read and write.";
     if (e.status === 404) return "Nie znaleziono repozytorium albo token nie ma do niego dostępu.";
     if (e.status === 409 || e.status === 422) return "Dane zmieniły się w międzyczasie (np. w innej karcie). Odśwież stronę i spróbuj ponownie.";
@@ -608,8 +608,10 @@ details.help[open] summary{margin-bottom:10px}
   }
   $("loginForm").addEventListener("submit", async function(e){
     e.preventDefault();
-    var cfg = {owner: $("l-owner").value.trim(), repo: $("l-repo").value.trim(), token: $("l-token").value.trim(), remember: $("l-remember").checked};
+    var cfg = {owner: $("l-owner").value.trim().replace(/^@/, ""), repo: $("l-repo").value.trim(), token: $("l-token").value.replace(/[\s"'„”“`]/g, ""), remember: $("l-remember").checked};
     if (!cfg.owner || !cfg.repo || !cfg.token) { loginStatus("Uzupełnij konto, repozytorium i token.", true); return; }
+    if (!/^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(cfg.token)) { loginStatus("To nie wygląda na token GitHub. Token zaczyna się od „github_pat_” i ma około 90 znaków. Wyczyść pole i wklej token jeszcze raz.", true); return; }
+    try { localStorage.removeItem(KEY); sessionStorage.removeItem(KEY); } catch(_){}
     $("loginBtn").disabled = true; loginStatus("Łączę z GitHubem…");
     try {
       await connect(cfg);
